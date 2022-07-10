@@ -35,4 +35,56 @@ func BadFoo() (int, error) {
 func Foo() (int, error) {
 	return 10, nil
   }
-  
+
+
+// ----------------- Custom Error Types ---------------- If you want your error
+// to include more information than just the error message string, you can
+// create a custom error type. As mentioned before, everything that implements
+// the error interface (i.e. has an Error() string method) can serve as an error
+// in Go.
+
+// Usually, a struct is used to create a custom error type. By convention,
+// custom error type names should end with Error. Also, it is best to set up the
+// Error() string method with a pointer receiver, see this Stackoverflow comment
+// to learn about the reasoning. Note that this means you need to return a
+// pointer to your custom error otherwise it will not count as error because the
+// non-pointer value does not provide the Error() string method.
+type MyCustomError struct {
+  message string
+  details string
+}
+
+func (e *MyCustomError) Error() string {
+  return fmt.Sprintf("%s, Details: %s", e.message, e.details)
+}
+
+func someFunction() error {
+  // ...
+  return &MyCustomError{
+    message: "...",
+    details: "...",
+  }
+}
+
+// ------------- Checking for Errors --------------
+// Errors can be checked against nil. It is recommended to
+// return early in case of an error to avoid nesting the "happy path" of your
+// code.
+func myFunc() error {
+	file, err := os.Open("./users.csv")
+	if err != nil {
+		// handle the error
+		return err // or e.g. log it and continue
+	}
+	// do something with file
+}
+
+// Since most functions in Go include an error as one of the return values, you will see/use this if err != nil pattern all over the place in Go code.
+// You can compare error variables with the equality operator ==:
+var ErrResourceNotFound = errors.New("resource not found")
+// ...
+if err == ErrResourceNotFound {
+  // do something about the resource-not-found error
+}
+
+// How to check for errors of a specific custom error type will be covered in later concepts.
